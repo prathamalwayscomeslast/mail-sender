@@ -1,0 +1,8 @@
+.mvn
+.git
+.gitignore
+.gitattributes
+target/
+*.md
+*.cmd
+Dockerfile
