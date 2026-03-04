@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Send Email</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; padding: 0 20px; }
+        h2 { color: #1a1a2e; }
+        label { font-weight: bold; font-size: 14px; }
+        input, textarea { width: 100%; padding: 8px; margin: 6px 0 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #0078d4; color: white; padding: 10px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; }
+        button:hover { background: #005a9e; }
+        .success { background: #e6f4ea; color: #1e7e34; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+        .error { background: #fdecea; color: #b71c1c; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
+        .from-badge { background: #f0f0f0; padding: 6px 12px; border-radius: 20px; font-size: 13px; display: inline-block; margin-bottom: 20px; }
+        .logout { font-size: 13px; color: #999; }
+        .logout a { color: #d32f2f; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h2>📧 Send Email</h2>
+    <div class="from-badge">✉️ Sending from: <strong th:text="${fromEmail}"></strong></div>
+
+    <div th:if="${success}" class="success" th:text="${success}"></div>
+    <div th:if="${error}" class="error" th:text="${error}"></div>
+
+    <form th:action="@{/send}" th:object="${emailRequest}" method="post">
+        <label>To</label>
+        <input type="email" th:field="*{to}" placeholder="recipient@example.com" required/>
+
+        <label>CC <span style="font-weight:normal; color:#999">(optional)</span></label>
+        <input type="text" th:field="*{cc}" placeholder="cc1@example.com, cc2@example.com"/>
+
+        <label>BCC <span style="font-weight:normal; color:#999">(optional)</span></label>
+        <input type="text" th:field="*{bcc}" placeholder="bcc@example.com"/>
+
+        <label>Reply-To <span style="font-weight:normal; color:#999">(optional)</span></label>
+        <input type="email" th:field="*{replyTo}" placeholder="replyto@example.com"/>
+
+        <label>Subject</label>
+        <input type="text" th:field="*{subject}" placeholder="Email subject" required/>
+
+        <label>Body</label>
+        <textarea th:field="*{body}" rows="6" placeholder="Write your email here... (HTML supported)" required></textarea>
+
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+            <input type="checkbox" th:field="*{html}" style="width:auto; margin:0"/>
+            Send as HTML
+        </label>
+
+        <button type="submit">Send Email 📧</button>
+    </form>
+
+    <br/>
+    <p class="logout">Wrong account? <a href="/logout">🔴 Clear credentials & start over</a></p>
+</body>
+</html>

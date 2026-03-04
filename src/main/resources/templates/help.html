@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Configuration Guide</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 60px auto; padding: 0 20px; }
+        h2 { color: #1a1a2e; }
+        h3 { color: #1a1a2e; margin: 28px 0 8px; border-bottom: 2px solid #f0f0f0; padding-bottom: 6px; }
+        h4 { color: #333; margin: 18px 0 6px; font-size: 14px; }
+        p, li { font-size: 14px; line-height: 1.7; color: #333; }
+        ul, ol { padding-left: 20px; margin: 6px 0 14px; }
+        li { margin-bottom: 5px; }
+        a { color: #0078d4; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        code {
+            background: #f0f0f0;
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        pre {
+            background: #1e2533;
+            color: #e2e8f0;
+            padding: 14px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 8px 0 14px;
+            line-height: 1.6;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0 16px; }
+        th { background: #f0f0f0; text-align: left; padding: 8px 12px; border: 1px solid #ddd; font-size: 13px; }
+        td { padding: 8px 12px; border: 1px solid #ddd; vertical-align: top; }
+
+        .badge {
+            background: #0078d4;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 8px;
+        }
+        .badge.orange { background: #e67e22; }
+        .badge.green  { background: #27ae60; }
+
+        .part-title {
+            display: flex;
+            align-items: center;
+            margin: 32px 0 8px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 6px;
+        }
+        .part-title h3 { margin: 0; border: none; padding: 0; }
+
+        .alert {
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin: 8px 0 14px;
+        }
+        .alert-danger  { background: #fdecea; color: #b71c1c; border-left: 4px solid #e53935; }
+        .alert-warning { background: #fff8e1; color: #7b4c00; border-left: 4px solid #f6ad55; }
+        .alert-tip     { background: #e3f2fd; color: #1a4971; border-left: 4px solid #0078d4; }
+
+        .text-green { color: #27ae60; font-weight: bold; }
+        .text-red   { color: #c0392b; font-weight: bold; }
+
+        hr { border: none; border-top: 1px solid #f0f0f0; margin: 28px 0; }
+
+        footer { font-size: 13px; color: #999; margin-top: 40px; text-align: center; }
+        footer a { color: #0078d4; }
+    </style>
+</head>
+<body>
+
+    <h2>Microsoft 365 OAuth2 Configuration Guide</h2>
+    <p style="color:#666; margin-bottom: 24px;">
+        Send emails via Microsoft 365 using OAuth2 — no passwords, no Basic Auth.
+        Follow this guide exactly to avoid common pitfalls.
+    </p>
+
+    <h3>Prerequisites</h3>
+    <ul>
+        <li>A Microsoft 365 account with <strong>Global Administrator</strong> access</li>
+        <li>Access to <a href="https://portal.azure.com" target="_blank">portal.azure.com</a></li>
+        <li>PowerShell <em>or</em> <a href="https://shell.azure.com" target="_blank">Azure Cloud Shell</a> (browser-based)</li>
+    </ul>
+
+    <hr/>
+
+    <div class="part-title">
+        <span class="badge">Part 1</span>
+        <h3>Azure Portal Setup</h3>
+    </div>
+
+    <h4>Step 1 — Register Your App</h4>
+    <ol>
+        <li>Go to <a href="https://portal.azure.com" target="_blank">portal.azure.com</a></li>
+        <li>Navigate to <strong>Azure Active Directory -> App Registrations -> New Registration</strong></li>
+        <li>Enter any name (e.g. <code>My Mailer</code>)</li>
+        <li>Select <strong>Single tenant only (Accounts in this organizational directory only)</strong></li>
+        <li>Click <strong>Register</strong></li>
+    </ol>
+
+    <h4>Step 2 — Collect Your Credentials</h4>
+    <p>From the App Registration overview page, copy and save:</p>
+    <ul>
+        <li><strong>Application (client) ID</strong> -> your <code>Client ID</code></li>
+        <li><strong>Directory (tenant) ID</strong> -> your <code>Tenant ID</code> (same as Directory ID)</li>
+    </ul>
+
+    <h4>Step 3 — Create a Client Secret</h4>
+    <ol>
+        <li>Go to <strong>Certificates &amp; Secrets -> New Client Secret</strong></li>
+        <li>Set expiry to 24 months (recommended)</li>
+        <li>Copy the <strong>Value</strong> immediately</li>
+    </ol>
+    <div class="alert alert-danger">
+        ⚠️ The secret disappears permanently after you leave the page. Copy it before navigating away!
+    </div>
+
+    <h4>Step 4 — Add API Permissions</h4>
+    <ol>
+        <li>Go to <strong>API Permissions -> Add a Permission</strong></li>
+        <li>Select <strong>Office 365 Exchange Online -> Application Permissions</strong> -> add <code>SMTP.SendAsApp</code></li>
+        <li>Click <strong>"Grant admin consent for [your org]"</strong> and confirm</li>
+    </ol>
+
+    <hr/>
+
+    <div class="part-title">
+        <span class="badge orange">Part 2</span>
+        <h3>Exchange Online Setup</h3>
+    </div>
+
+    <div class="alert alert-danger">
+        ⚠️ <strong>Most people miss this!</strong> Azure AD permissions alone are NOT enough for SMTP.
+        Exchange Online needs its own separate configuration — skipping this causes <code>535 5.7.3 Authentication Unsuccessful</code>.
+    </div>
+
+    <h4>Step 5 — Get Your Enterprise Application Object ID</h4>
+    <div class="alert alert-warning">
+        ⚠️ This is NOT the same as the App Registration Object ID. Using the wrong one will fail.
+    </div>
+    <ol>
+        <li>Go to <strong>Azure Active Directory -> Enterprise Applications</strong></li>
+        <li>Search your app name and click it</li>
+        <li>Copy the <strong>Object ID</strong> shown here</li>
+    </ol>
+    <table>
+        <tr><th>Location</th><th>Object ID type</th><th>Use?</th></tr>
+        <tr>
+            <td>App Registrations -> your app</td>
+            <td>App Registration Object ID</td>
+            <td class="text-red">❌ Wrong</td>
+        </tr>
+        <tr>
+            <td>Enterprise Applications -> your app</td>
+            <td>Enterprise Application Object ID</td>
+            <td class="text-green">✅ Correct</td>
+        </tr>
+    </table>
+
+    <h4>Step 6 — Run PowerShell Commands</h4>
+    <div class="alert alert-tip">
+        💡 No PowerShell? Use <a href="https://shell.azure.com" target="_blank">Azure Cloud Shell</a> in your browser.
+        Select <strong>PowerShell</strong> mode — ExchangeOnlineManagement is pre-installed, skip the install step.
+    </div>
+
+    <p><strong>Windows — Open PowerShell as Administrator:</strong></p>
+    <pre>Install-Module -Name ExchangeOnlineManagement</pre>
+
+    <p><strong>Linux / Mac:</strong></p>
+    <pre># Ubuntu/Debian
+sudo apt-get install -y powershell
+
+# Fedora/RHEL
+sudo dnf install -y powershell
+
+# Any distro via snap
+sudo snap install powershell --classic
+
+pwsh   # launch PowerShell</pre>
+
+    <p><strong>Connect to your tenant</strong> (browser popup — sign in as Global Admin):</p>
+    <pre>Connect-ExchangeOnline -Organization YOUR_TENANT_ID</pre>
+
+    <p><strong>Register your app as an Exchange Service Principal:</strong></p>
+    <pre>New-ServicePrincipal -AppId YOUR_CLIENT_ID -ObjectId YOUR_ENTERPRISE_APPS_OBJECT_ID</pre>
+    <p>Copy the <code>ObjectId</code> from the output — this is your <strong>Service Principal ID</strong>.</p>
+
+    <p><strong>Grant mailbox access:</strong></p>
+    <pre>Add-MailboxPermission -Identity "yourmail@yourtenant.onmicrosoft.com" -User YOUR_SERVICE_PRINCIPAL_ID -AccessRights FullAccess</pre>
+
+    <hr/>
+
+    <div class="part-title">
+        <span class="badge green">Part 3</span>
+        <h3>Application Configuration</h3>
+    </div>
+
+    <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>From Email</td><td><code>yourmail@yourtenant.onmicrosoft.com</code></td></tr>
+        <tr><td>Client ID</td><td>From Step 2</td></tr>
+        <tr><td>Client Secret</td><td>From Step 3</td></tr>
+        <tr><td>Tenant ID</td><td>From Step 2</td></tr>
+    </table>
+
+    <hr/>
+
+    <h3>🔧 Common Errors &amp; Fixes</h3>
+    <table>
+        <tr><th>Error</th><th>Cause</th><th>Fix</th></tr>
+        <tr>
+            <td><code>535 5.7.3 Authentication Unsuccessful</code></td>
+            <td>Exchange Service Principal not registered</td>
+            <td>Complete Part 2 fully</td>
+        </tr>
+        <tr>
+            <td><code>535 5.7.3</code> even after Part 2</td>
+            <td>Wrong ObjectId used</td>
+            <td>Redo Step 5 using Enterprise Applications Object ID</td>
+        </tr>
+        <tr>
+            <td><code>550 5.7.501 Spam abuse detected</code></td>
+            <td>Trial tenant IP reputation issue</td>
+            <td>Use a paid M365 subscription or raise a Microsoft support ticket</td>
+        </tr>
+        <tr>
+            <td>Token fetch fails</td>
+            <td>Wrong OAuth2 scope</td>
+            <td>Scope must be <code>https://outlook.office365.com/.default</code></td>
+        </tr>
+        <tr>
+            <td><code>XOAUTH2 not supported</code></td>
+            <td>Missing auth mechanism config</td>
+            <td>Set <code>mail.smtp.auth.mechanisms=XOAUTH2</code></td>
+        </tr>
+        <tr>
+            <td>Client secret not working</td>
+            <td>Secret expired or copied incorrectly</td>
+            <td>Generate a new secret and copy it immediately</td>
+        </tr>
+    </table>
+
+    <hr/>
+
+    <!-- HOW IT WORKS -->
+    <h3>⚙️ How It Works</h3>
+    <p>OAuth2 Client Credentials Flow — designed for server-to-server communication. No manual login required, no passwords over the wire, only short-lived tokens that auto-refresh silently.</p>
+    <ol>
+        <li>App fetches a short-lived OAuth2 token from Azure AD using Client ID + Secret</li>
+        <li>App connects to <code>smtp.office365.com:587</code> with STARTTLS</li>
+        <li>App authenticates via <code>XOAUTH2</code> — token, not password</li>
+        <li>Exchange verifies token, Service Principal, and Mailbox Permission</li>
+        <li>Email delivered!</li>
+    </ol>
+
+    <footer>
+        <a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth" target="_blank">
+            Microsoft official SMTP OAuth2 documentation ↗
+        </a>
+        <br/><br/>
+        <a href="/">Back to Home</a>
+    </footer>
+
+</body>
+</html>
