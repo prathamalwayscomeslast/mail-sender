@@ -12,6 +12,7 @@ pipeline {
         docker {
           image 'docker:26-dind'
           args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+          alwaysPull false
         }
       }
       steps {
