@@ -11,10 +11,12 @@ pipeline {
       agent {
         docker {
           image 'docker:dind'
+          args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
         }
       }
       steps {
         sh """
+          docker --version
           docker build -t ${IMAGE_BASE}:${TAG} -t ${IMAGE_BASE}:latest .
         """
       }
