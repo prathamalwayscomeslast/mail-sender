@@ -18,12 +18,14 @@ pipeline {
       agent {
         docker {
           image 'docker:26-dind'
-          args '--privileged -u root -v ${WORKSPACE}:/workspace -w /workspace'
+          args '-v ${WORKSPACE}:/workspace -w /workspace --privileged -u root --entrypoint=""'
+          reuseNode true
           alwaysPull false
         }
       }
       steps {
         sh """
+          git config --global safe.directory /workspace || true
           docker --version
           docker build -t ${IMAGE_BASE}:${TAG} -t ${IMAGE_BASE}:latest .
         """
