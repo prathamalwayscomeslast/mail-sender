@@ -7,11 +7,18 @@ pipeline {
   }
 
   stages {
+    stage('Checkout') {
+      agent any
+      steps {
+        checkout scm
+      }
+    }
+    
     stage('Docker Build') {
       agent {
         docker {
           image 'docker:26-dind'
-          args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+          args '--privileged -u root -v ${WORKSPACE}:/workspace -w /workspace'
           alwaysPull false
         }
       }
