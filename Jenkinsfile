@@ -16,6 +16,11 @@ pipeline {
     }
 
     stage('Push DockerHub') {
+      agent {
+        docker {
+          image 'docker:dind'
+        }
+      }
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
                                           usernameVariable: 'DH_USER',
